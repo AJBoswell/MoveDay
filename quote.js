@@ -159,14 +159,18 @@ updateUI();
 function toggleMapPanel() {
     const panel = document.getElementById('map-panel');
     const layout = document.getElementById('step1-layout');
-    if (currentStep === 1) {
-panel.classList.remove('hidden');
-layout.style.maxWidth = '1100px';
+    const isMobile = window.innerWidth <= 900;
+    if (currentStep === 1 && !isMobile) {
+        panel.classList.remove('hidden');
+        layout.style.maxWidth = '1100px';
     } else {
-panel.classList.add('hidden');
-layout.style.maxWidth = '640px';
+        panel.classList.add('hidden');
+        layout.style.maxWidth = '640px';
     }
 }
+
+// Re-check on resize
+window.addEventListener('resize', toggleMapPanel);
 
 // Patch updateUI to also toggle map
 const _origUpdateUI = updateUI;

@@ -187,8 +187,8 @@
 
         @media (max-width: 900px) {
             .step1-layout { flex-direction: column; }
-            .step1-layout .form-shell { border-radius: 16px 16px 0 0; max-width: 100%; }
-            .map-panel { border-radius: 0 0 16px 16px; border-left: none; border-top: 1px solid var(--border); min-height: 260px; }
+            .step1-layout .form-shell { border-radius: 16px; max-width: 100%; }
+            .map-panel { display: none !important; }
         }
 
         /* ── STEP HEADER ── */
@@ -515,11 +515,14 @@
         /* ── RESPONSIVE ── */
         @media (max-width: 600px) {
             header { padding: 14px 20px; }
-            .progress-bar-wrap { padding: 0 20px; }
-            .progress-step { font-size: 0.65rem; }
-            .step-header, .step-body, .step-footer { padding-left: 20px; padding-right: 20px; }
+            .progress-bar-wrap { padding: 0 10px; }
+            .progress-step { font-size: 0.6rem; padding: 10px 2px; }
+            .step-header, .step-body, .step-footer { padding-left: 16px; padding-right: 16px; }
             .inventory-grid { grid-template-columns: 1fr; }
             .yn-grid { grid-template-columns: 1fr 1fr; }
+            main { padding: 24px 12px 60px; }
+            .form-shell { border-radius: 12px; }
+            .step1-layout { max-width: 100% !important; }
         }
     </style>
 </head>
