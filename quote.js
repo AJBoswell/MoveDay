@@ -183,71 +183,69 @@ toggleMapPanel();
 
 
 // ── GOOGLE MAPS AUTOCOMPLETE + ROUTE ──
-let map, directionsService, directionsRenderer;
-let fromPlace = null, toPlace = null;
-
+// All map vars scoped inside initMaps to avoid hoisting issues
 function initMaps() {
-    // Init map
-    map = new google.maps.Map(document.getElementById('route-map'), {
-center: { lat: 51.5, lng: -0.1 },
-zoom: 7,
-disableDefaultUI: true,
-zoomControl: true,
-styles: [
-    { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-    { featureType: 'transit', stylers: [{ visibility: 'off' }] }
-]
+    const mapEl = document.getElementById('route-map');
+    if (!mapEl) return;
+
+    const map = new google.maps.Map(mapEl, {
+        center: { lat: 51.5, lng: -0.1 },
+        zoom: 7,
+        disableDefaultUI: true,
+        zoomControl: true,
+        styles: [
+            { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+            { featureType: 'transit', stylers: [{ visibility: 'off' }] }
+        ]
     });
 
-    directionsService = new google.maps.DirectionsService();
-    directionsRenderer = new google.maps.DirectionsRenderer({
-map,
-suppressMarkers: false,
-polylineOptions: { strokeColor: '#1a8a72', strokeWeight: 5 }
+    const directionsService = new google.maps.DirectionsService();
+    const directionsRenderer = new google.maps.DirectionsRenderer({
+        map,
+        suppressMarkers: false,
+        polylineOptions: { strokeColor: '#1a8a72', strokeWeight: 5 }
     });
 
-    // Hide placeholder once map loads
-    document.getElementById('map-placeholder').style.display = 'none';
+    const placeholder = document.getElementById('map-placeholder');
+    if (placeholder) placeholder.style.display = 'none';
+
+    let fromPlace = null;
+    let toPlace = null;
+
+    function tryRoute() {
+        if (!fromPlace || !toPlace) return;
+        directionsService.route({
+            origin: fromPlace.geometry.location,
+            destination: toPlace.geometry.location,
+            travelMode: google.maps.TravelMode.DRIVING
+        }, (result, status) => {
+            if (status === 'OK') {
+                directionsRenderer.setDirections(result);
+                const leg = result.routes[0].legs[0];
+                document.getElementById('map-distance').textContent = leg.distance.text;
+                document.getElementById('map-duration').textContent = leg.duration.text + ' drive';
+                document.getElementById('map-info').classList.add('visible');
+            }
+        });
+    }
 
     // Autocomplete - FROM
-    const fromInput = document.getElementById('address-from');
-    const acFrom = new google.maps.places.Autocomplete(fromInput, {
-componentRestrictions: { country: ['gb','fr','de','es','it','nl','be','pl','ie','pt'] },
-fields: ['formatted_address', 'geometry']
-    });
+    const acFrom = new google.maps.places.Autocomplete(
+        document.getElementById('address-from'),
+        { fields: ['formatted_address', 'geometry'] }
+    );
     acFrom.addListener('place_changed', () => {
-fromPlace = acFrom.getPlace();
-if (fromPlace.geometry) tryRoute();
+        fromPlace = acFrom.getPlace();
+        if (fromPlace.geometry) tryRoute();
     });
 
     // Autocomplete - TO
-    const toInput = document.getElementById('address-to');
-    const acTo = new google.maps.places.Autocomplete(toInput, {
-componentRestrictions: { country: ['gb','fr','de','es','it','nl','be','pl','ie','pt'] },
-fields: ['formatted_address', 'geometry']
-    });
+    const acTo = new google.maps.places.Autocomplete(
+        document.getElementById('address-to'),
+        { fields: ['formatted_address', 'geometry'] }
+    );
     acTo.addListener('place_changed', () => {
-toPlace = acTo.getPlace();
-if (toPlace.geometry) tryRoute();
-    });
-}
-
-function tryRoute() {
-    if (!fromPlace || !toPlace) return;
-
-    directionsService.route({
-origin: fromPlace.geometry.location,
-destination: toPlace.geometry.location,
-travelMode: google.maps.TravelMode.DRIVING
-    }, (result, status) => {
-if (status === 'OK') {
-    directionsRenderer.setDirections(result);
-
-    const leg = result.routes[0].legs[0];
-    document.getElementById('map-distance').textContent = leg.distance.text;
-    document.getElementById('map-duration').textContent = leg.duration.text + ' drive';
-    document.getElementById('map-info').classList.add('visible');
-    document.getElementById('map-placeholder').style.display = 'none';
-}
+        toPlace = acTo.getPlace();
+        if (toPlace.geometry) tryRoute();
     });
 }
