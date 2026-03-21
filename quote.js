@@ -159,6 +159,7 @@ updateUI();
 function toggleMapPanel() {
     const panel = document.getElementById('map-panel');
     const layout = document.getElementById('step1-layout');
+    if (!panel || !layout) return;
     const isMobile = window.innerWidth <= 900;
     if (currentStep === 1 && !isMobile) {
         panel.classList.remove('hidden');
