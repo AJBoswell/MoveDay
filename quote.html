@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoveDay – Get a Quote</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --navy:   #0f1f38;
+            --teal:   #1a8a72;
+            --teal-light: #22b394;
+            --cream:  #f7f4ef;
+            --white:  #ffffff;
+            --grey:   #6b7280;
+            --light:  #f3f4f6;
+            --border: #e5e7eb;
+            --orange: #e8631a;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--cream);
+            color: var(--navy);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── HEADER ── */
+        header {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--navy);
+        }
+
+        .logo span { color: var(--teal-light); }
+
+        .back-link {
+            font-size: 0.85rem;
+            color: var(--grey);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover { color: var(--navy); }
+
+        /* ── PROGRESS ── */
+        .progress-bar-wrap {
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            padding: 0 40px;
+        }
+
+        .progress-steps {
+            display: flex;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .progress-step {
+            flex: 1;
+            padding: 14px 0;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: #b0b8c4;
+            text-align: center;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+            cursor: default;
+        }
+
+        .progress-step.active {
+            color: var(--teal);
+            border-bottom-color: var(--teal);
+        }
+
+        .progress-step.done {
+            color: var(--teal-light);
+            border-bottom-color: var(--teal-light);
+        }
+
+        /* ── MAIN ── */
+        main {
+            flex: 1;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 48px 24px 80px;
+        }
+
+        .form-shell {
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 4px 40px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 640px;
+            overflow: hidden;
+        }
+
+        /* ── STEP 1 TWO-COLUMN LAYOUT ── */
+        .step1-layout {
+            display: flex;
+            gap: 0;
+            align-items: stretch;
+            max-width: 1100px;
+            width: 100%;
+        }
+
+        .step1-layout .form-shell {
+            max-width: 620px;
+            flex-shrink: 0;
+            border-radius: 16px 0 0 16px;
+        }
+
+        .map-panel {
+            flex: 1;
+            background: var(--white);
+            border-radius: 0 16px 16px 0;
+            border-left: 1px solid var(--border);
+            box-shadow: 0 4px 40px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 280px;
+        }
+
+        #route-map {
+            flex: 1;
+            min-height: 320px;
+            background: #e8eaf0;
+        }
+
+        .map-info {
+            padding: 14px 18px;
+            border-top: 1px solid var(--border);
+            display: none;
+            gap: 16px;
+            align-items: center;
+            font-size: 0.82rem;
+        }
+
+        .map-info.visible { display: flex; }
+
+        .map-info-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--navy);
+            font-weight: 500;
+        }
+
+        .map-info-item svg { color: var(--teal); }
+
+        .map-placeholder {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--grey);
+            font-size: 0.82rem;
+            text-align: center;
+            padding: 24px;
+            gap: 10px;
+        }
+
+        .map-placeholder svg { opacity: 0.3; }
+
+        .map-panel.hidden { display: none; }
+
+        @media (max-width: 900px) {
+            .step1-layout { flex-direction: column; }
+            .step1-layout .form-shell { border-radius: 16px 16px 0 0; max-width: 100%; }
+            .map-panel { border-radius: 0 0 16px 16px; border-left: none; border-top: 1px solid var(--border); min-height: 260px; }
+        }
+
+        /* ── STEP HEADER ── */
+        .step-header {
+            padding: 28px 36px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .step-label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        .step-counter {
+            font-size: 0.8rem;
+            color: var(--grey);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .step-counter .spinner {
+            width: 16px; height: 16px;
+            border: 2px solid var(--border);
+            border-top-color: var(--teal);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── STEP BODY ── */
+        .step-body {
+            padding: 28px 36px 36px;
+        }
+
+        .step-pane { display: none; }
+        .step-pane.active { display: block; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(12px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        /* ── FIELDS ── */
+        .field { margin-bottom: 22px; }
+
+        .field label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--navy);
+            margin-bottom: 8px;
+        }
+
+        .field input,
+        .field select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            color: var(--navy);
+            background: #fafafa;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            appearance: none;
+        }
+
+        .field select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 40px;
+        }
+
+        .field input:focus,
+        .field select:focus {
+            border-color: var(--teal);
+            box-shadow: 0 0 0 3px rgba(26,138,114,0.1);
+            background: var(--white);
+        }
+
+        .field input::placeholder { color: #b0b8c4; }
+
+        /* Date field readonly style */
+        .field input[readonly] {
+            background: var(--light);
+            cursor: pointer;
+        }
+
+        /* ── YES/NO CARDS ── */
+        .yn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-top: 4px;
+        }
+
+        .yn-card {
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 22px 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .yn-card:hover { border-color: var(--teal-light); background: #f0faf7; }
+
+        .yn-card.selected {
+            border-color: var(--teal);
+            background: #e6f7f3;
+        }
+
+        .yn-card .yn-icon { font-size: 2rem; margin-bottom: 8px; }
+
+        .yn-card .yn-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        .yn-card .yn-sub {
+            font-size: 0.75rem;
+            color: var(--grey);
+            margin-top: 4px;
+        }
+
+        /* ── INVENTORY ── */
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .inv-item {
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: border-color 0.2s;
+        }
+
+        .inv-item:hover { border-color: var(--teal-light); }
+
+        .inv-name {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--navy);
+        }
+
+        .qty-ctrl {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .qty-btn {
+            width: 26px; height: 26px;
+            border: 1.5px solid var(--border);
+            border-radius: 50%;
+            background: var(--white);
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--navy);
+            transition: all 0.15s;
+            line-height: 1;
+        }
+
+        .qty-btn:hover { border-color: var(--teal); color: var(--teal); }
+
+        .qty-num {
+            font-size: 0.85rem;
+            font-weight: 600;
+            min-width: 14px;
+            text-align: center;
+            color: var(--navy);
+        }
+
+        /* ── EXTRAS CHECKBOXES ── */
+        .extras-list { display: flex; flex-direction: column; gap: 12px; }
+
+        .extra-item {
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .extra-item:hover { border-color: var(--teal-light); }
+        .extra-item.checked { border-color: var(--teal); background: #f0faf7; }
+
+        .extra-check {
+            width: 20px; height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 5px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .extra-item.checked .extra-check {
+            background: var(--teal);
+            border-color: var(--teal);
+        }
+
+        .extra-check svg { display: none; }
+        .extra-item.checked .extra-check svg { display: block; }
+
+        .extra-text .extra-title {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--navy);
+        }
+
+        .extra-text .extra-desc {
+            font-size: 0.75rem;
+            color: var(--grey);
+            margin-top: 2px;
+        }
+
+        /* ── FOOTER / BUTTONS ── */
+        .step-footer {
+            padding: 0 36px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            border-top: 1px solid var(--border);
+            padding-top: 24px;
+            margin-top: 8px;
+        }
+
+        .btn-back {
+            padding: 12px 24px;
+            background: none;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--grey);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-back:hover { border-color: var(--navy); color: var(--navy); }
+
+        .btn-next {
+            padding: 12px 28px;
+            background: var(--orange);
+            border: none;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--white);
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .btn-next:hover { background: #d05510; }
+        .btn-next:active { transform: scale(0.98); }
+
+        /* ── SUCCESS ── */
+        .success-pane {
+            display: none;
+            text-align: center;
+            padding: 60px 36px;
+        }
+
+        .success-pane.active { display: block; animation: fadeIn 0.4s ease; }
+
+        .success-tick {
+            width: 72px; height: 72px;
+            border-radius: 50%;
+            background: #e6f7f3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+        }
+
+        .success-pane h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--navy);
+            margin-bottom: 10px;
+        }
+
+        .success-pane p {
+            font-size: 0.9rem;
+            color: var(--grey);
+            line-height: 1.6;
+        }
+
+        /* ── SECTION TITLE ── */
+        .section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--teal);
+            margin-bottom: 14px;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 600px) {
+            header { padding: 14px 20px; }
+            .progress-bar-wrap { padding: 0 20px; }
+            .progress-step { font-size: 0.65rem; }
+            .step-header, .step-body, .step-footer { padding-left: 20px; padding-right: 20px; }
+            .inventory-grid { grid-template-columns: 1fr; }
+            .yn-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <div class="logo"><img src="https://static.wixstatic.com/media/611ec0_9fdf229dd67a4778aa8ea52766c4e981%7Emv2.png/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/611ec0_9fdf229dd67a4778aa8ea52766c4e981%7Emv2.png" alt="MoveDay Removals" style="height:44px;width:auto;vertical-align:middle;"></div>
+        <a href="hero.html" class="back-link">
+            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+            </svg>
+            Back to home
+        </a>
+    </header>
+
+    <!-- PROGRESS -->
+    <div class="progress-bar-wrap">
+        <div class="progress-steps">
+            <div class="progress-step active" id="prog-1">Address</div>
+            <div class="progress-step" id="prog-2">Inventory</div>
+            <div class="progress-step" id="prog-3">Storage</div>
+            <div class="progress-step" id="prog-4">Loading</div>
+            <div class="progress-step" id="prog-5">Extras</div>
+            <div class="progress-step" id="prog-6">Your details</div>
+        </div>
+    </div>
+
+    <!-- FORM -->
+    <main>
+        <div class="form-shell">
+
+            <div class="step-header">
+                <div class="step-label" id="step-label">Address</div>
+                <div class="step-counter">
+                    <div class="spinner"></div>
+                    <span id="step-counter-text">1 / 6</span>
+                </div>
+            </div>
+
+            <div class="step-body">
+
+                <!-- STEP 1: ADDRESS -->
+                <div class="step-pane active" id="step-1">
+                    <div class="field">
+                        <label>Where are you moving from?</label>
+                        <input type="text" id="address-from" placeholder="Enter pickup address">
+                    </div>
+                    <div class="field">
+                        <label>What type of property are you moving from?</label>
+                        <select id="prop-from">
+                            <option value="" disabled selected>Select a property</option>
+                            <option>Studio flat</option>
+                            <option>1 bedroom flat</option>
+                            <option>2 bedroom flat</option>
+                            <option>2 bedroom house</option>
+                            <option>3 bedroom house</option>
+                            <option>4 bedroom house</option>
+                            <option>5+ bedroom house</option>
+                            <option>Office / Commercial</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Where are you moving to?</label>
+                        <input type="text" id="address-to" placeholder="Enter delivery address">
+                    </div>
+                    <div class="field">
+                        <label>What type of property are you moving to?</label>
+                        <select id="prop-to">
+                            <option value="" disabled selected>Select a property</option>
+                            <option>Studio flat</option>
+                            <option>1 bedroom flat</option>
+                            <option>2 bedroom flat</option>
+                            <option>2 bedroom house</option>
+                            <option>3 bedroom house</option>
+                            <option>4 bedroom house</option>
+                            <option>5+ bedroom house</option>
+                            <option>Office / Commercial</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Date</label>
+                        <input type="text" id="move-date" placeholder="Select a date" readonly>
+                    </div>
+                </div>
+
+                <!-- STEP 2: INVENTORY -->
+                <div class="step-pane" id="step-2">
+                    <p class="section-title">Select items you're moving</p>
+                    <div class="inventory-grid">
+                        <!-- Items injected by JS -->
+                    </div>
+                </div>
+
+                <!-- STEP 3: STORAGE -->
+                <div class="step-pane" id="step-3">
+                    <p class="section-title">Do you need storage?</p>
+                    <div class="yn-grid">
+                        <div class="yn-card" data-yn="storage-yes" onclick="selectYN(this, 'storage')">
+                            <div class="yn-icon">🏪</div>
+                            <div class="yn-label">Yes please</div>
+                            <div class="yn-sub">I need storage space</div>
+                        </div>
+                        <div class="yn-card" data-yn="storage-no" onclick="selectYN(this, 'storage')">
+                            <div class="yn-icon">✋</div>
+                            <div class="yn-label">No thanks</div>
+                            <div class="yn-sub">Going straight to my new place</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: LOADING HELP -->
+                <div class="step-pane" id="step-4">
+                    <p class="section-title">Do you need help loading the van?</p>
+                    <div class="yn-grid">
+                        <div class="yn-card" data-yn="loading-yes" onclick="selectYN(this, 'loading')">
+                            <div class="yn-icon">💪</div>
+                            <div class="yn-label">Yes please</div>
+                            <div class="yn-sub">I'd like help loading</div>
+                        </div>
+                        <div class="yn-card" data-yn="loading-no" onclick="selectYN(this, 'loading')">
+                            <div class="yn-icon">👍</div>
+                            <div class="yn-label">No thanks</div>
+                            <div class="yn-sub">I'll handle the loading</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 5: EXTRAS -->
+                <div class="step-pane" id="step-5">
+                    <p class="section-title">Any extras needed?</p>
+                    <div class="extras-list">
+                        <div class="extra-item" onclick="toggleExtra(this)">
+                            <div class="extra-check">
+                                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <div class="extra-text">
+                                <div class="extra-title">📦 Packing service</div>
+                                <div class="extra-desc">We'll pack all your belongings securely before the move</div>
+                            </div>
+                        </div>
+                        <div class="extra-item" onclick="toggleExtra(this)">
+                            <div class="extra-check">
+                                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <div class="extra-text">
+                                <div class="extra-title">🔧 Dismantling &amp; reassembly</div>
+                                <div class="extra-desc">Beds, wardrobes, flat-pack furniture etc.</div>
+                            </div>
+                        </div>
+                        <div class="extra-item" onclick="toggleExtra(this)">
+                            <div class="extra-check">
+                                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <div class="extra-text">
+                                <div class="extra-title">🛃 Customs documentation</div>
+                                <div class="extra-desc">Required for moves outside the UK</div>
+                            </div>
+                        </div>
+                        <div class="extra-item" onclick="toggleExtra(this)">
+                            <div class="extra-check">
+                                <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#fff" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <div class="extra-text">
+                                <div class="extra-title">🛡️ Extra insurance cover</div>
+                                <div class="extra-desc">Additional protection for high-value items</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 6: DETAILS -->
+                <div class="step-pane" id="step-6">
+                    <p class="section-title">Almost there — just your details</p>
+                    <div class="field">
+                        <label>Full name</label>
+                        <input type="text" id="detail-name" placeholder="John Smith">
+                    </div>
+                    <div class="field">
+                        <label>Email address</label>
+                        <input type="email" id="detail-email" placeholder="john@example.com">
+                    </div>
+                    <div class="field">
+                        <label>Phone number</label>
+                        <input type="tel" id="detail-phone" placeholder="07700 900 123">
+                    </div>
+                </div>
+
+            </div><!-- end step-body -->
+
+            <!-- SUCCESS -->
+            <div class="success-pane" id="success-pane">
+                <div class="success-tick">
+                    <svg width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="#1a8a72" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <h2>We've got your details!</h2>
+                <p>One of our team will be in touch within the hour<br>to confirm your quote and answer any questions.</p>
+            </div>
+
+            <!-- FOOTER BUTTONS -->
+            <div class="step-footer" id="step-footer">
+                <button class="btn-back" id="btn-back" onclick="prevStep()" style="display:none">← Back</button>
+                <button class="btn-next" id="btn-next" onclick="nextStep()">Next step</button>
+            </div>
+
+        </div>
+
+        <!-- MAP PANEL (step 1 only) -->
+        <div class="map-panel" id="map-panel">
+            <div id="route-map">
+                <div class="map-placeholder" id="map-placeholder">
+                    <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                    </svg>
+                    <span>Enter both addresses to<br>see your route</span>
+                </div>
+            </div>
+            <div class="map-info" id="map-info">
+                <div class="map-info-item">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                    <span id="map-distance">—</span>
+                </div>
+                <div class="map-info-item">
+                    <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
+                    <span id="map-duration">—</span>
+                </div>
+            </div>
+        </div>
+
+        </div><!-- end step1-layout -->
+    </main>
+
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAWhB-1aMujEYbBSycKXde3YNh4PwKEpH8&libraries=places&callback=initMaps" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+
+    <script src="quote.js"></script>
+</body>
+</html>

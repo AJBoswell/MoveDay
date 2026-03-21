@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MoveDay – Trusted Home Removals</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="hero.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+    </head>
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <div class="logo"><img src="https://static.wixstatic.com/media/611ec0_9fdf229dd67a4778aa8ea52766c4e981%7Emv2.png/v1/fill/w_192%2Ch_192%2Clg_1%2Cusm_0.66_1.00_0.01/611ec0_9fdf229dd67a4778aa8ea52766c4e981%7Emv2.png" alt="MoveDay Removals" style="height:52px;width:auto;vertical-align:middle;"></div>
+        <div class="nav-links">
+            <a href="#">Services</a>
+            <a href="#">How it works</a>
+            <a href="#">Reviews</a>
+            <a href="quote.html" class="nav-cta">Get a quote</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+
+        <div class="hero-inner">
+
+            <!-- Left copy -->
+            <div class="hero-copy">
+                <div class="hero-badge">
+                    <div class="dot"></div>
+                    Trusted across the UK &amp; Europe
+                </div>
+
+                <h1>Your move,<br><em>done properly.</em></h1>
+
+                <p class="hero-desc">
+                    Professional home removals handled with care. Get a free, no-obligation quote in under two minutes — no hidden fees, no stress.
+                </p>
+
+                <div class="trust-row">
+                    <div class="trust-item">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Free quote
+                    </div>
+                    <div class="trust-item">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        Fully insured
+                    </div>
+                    <div class="trust-item">
+                        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                        No hidden costs
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form card -->
+            <div class="form-card">
+                <h2>Get your free quote</h2>
+                <p>We'll be in touch within the hour.</p>
+
+                <form id="lead-form">
+                    <div class="field">
+                        <label for="name">Full name</label>
+                        <input type="text" id="name" name="name" placeholder="John Smith" required>
+                    </div>
+                    <div class="field">
+                        <label for="email">Email address</label>
+                        <input type="email" id="email" name="email" placeholder="john@example.com" required>
+                    </div>
+                    <div class="field">
+                        <label for="phone">Phone number</label>
+                        <input type="tel" id="phone" name="phone" placeholder="07700 900 123" required>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Get my free quote →</button>
+
+                    <p class="form-note">
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 11c0-1.1.9-2 2-2s2 .9 2 2v1h-4v-1zm-2 0V9a4 4 0 018 0v2h1a1 1 0 011 1v7a1 1 0 01-1 1H7a1 1 0 01-1-1v-7a1 1 0 011-1h1z"/>
+                        </svg>
+                        Your details are safe with us. No spam, ever.
+                    </p>
+                </form>
+
+                <!-- Success message (shown after submit) -->
+                <div class="success-msg" id="success-msg">
+                    <div class="tick">
+                        <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#1a8a72" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <h3>Thanks, we'll be in touch!</h3>
+                    <p>One of our team will call you within the hour to discuss your move.</p>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- STATS BAR -->
+    <div class="stats-bar">
+        <div class="stat">
+            <div class="stat-number">5,000+</div>
+            <div class="stat-label">Moves completed</div>
+        </div>
+        <div class="stat">
+            <div class="stat-number">4.9★</div>
+            <div class="stat-label">Average rating</div>
+        </div>
+        <div class="stat">
+            <div class="stat-number">£0</div>
+            <div class="stat-label">Hidden fees</div>
+        </div>
+        <div class="stat">
+            <div class="stat-number">24hr</div>
+            <div class="stat-label">Response time</div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('lead-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            window.location.href = 'quote.html';
+        });
+    </script>
+
+</body>
+</html>
