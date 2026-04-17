@@ -324,10 +324,84 @@
         }
 
         /* ── INVENTORY ── */
+
+        /* Room tabs */
+        .room-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        .room-tab {
+            padding: 8px 16px;
+            border: 1.5px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            background: var(--white);
+            color: var(--grey);
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .room-tab:hover { border-color: var(--teal-light); color: var(--navy); }
+
+        .room-tab.active {
+            background: var(--navy);
+            border-color: var(--navy);
+            color: var(--white);
+        }
+
+        .room-tab .room-badge {
+            display: inline-block;
+            background: var(--teal-light);
+            color: white;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            padding: 1px 6px;
+            margin-left: 5px;
+        }
+
+        /* Item grid */
         .inventory-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
+            margin-bottom: 18px;
+            min-height: 80px;
+        }
+
+        /* Summary bar */
+        .inv-summary {
+            border-top: 1.5px solid var(--border);
+            padding-top: 14px;
+            margin-top: 4px;
+        }
+
+        .inv-summary-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--teal);
+            margin-bottom: 8px;
+        }
+
+        .inv-summary-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .inv-tag {
+            background: var(--navy);
+            color: white;
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.78rem;
+            font-weight: 500;
         }
 
         .inv-item {
@@ -611,9 +685,22 @@
 
                 <!-- STEP 2: INVENTORY -->
                 <div class="step-pane" id="step-2">
-                    <p class="section-title">Select items you're moving</p>
-                    <div class="inventory-grid">
-                        <!-- Items injected by JS -->
+                    <p class="section-title">Select items by room</p>
+
+                    <!-- Room tabs -->
+                    <div class="room-tabs" id="room-tabs">
+                        <!-- injected by JS -->
+                    </div>
+
+                    <!-- Item grid for selected room -->
+                    <div class="inventory-grid" id="inventory-grid">
+                        <!-- injected by JS -->
+                    </div>
+
+                    <!-- Summary of all selected items -->
+                    <div class="inv-summary" id="inv-summary" style="display:none">
+                        <div class="inv-summary-label">Your items:</div>
+                        <div class="inv-summary-tags" id="inv-summary-tags"></div>
                     </div>
                 </div>
 

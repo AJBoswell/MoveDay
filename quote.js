@@ -4,37 +4,100 @@ const totalSteps = 6;
 
 const stepLabels = ['Address', 'Inventory', 'Storage', 'Loading help', 'Extras', 'Your details'];
 
-// ── INVENTORY ITEMS ──
-const inventoryItems = [
-    'Sofa', 'Armchair', 'Dining table', 'Dining chairs',
-    'Double bed', 'Single bed', 'Wardrobe', 'Chest of drawers',
-    'Desk', 'Bookcase', 'Washing machine', 'Fridge / freezer',
-    'Tumble dryer', 'Dishwasher', 'TV', 'Boxes (small)',
-    'Boxes (medium)', 'Boxes (large)', 'Bike', 'Mattress'
+// ── INVENTORY — ROOM BY ROOM ──
+const rooms = [
+    {
+        name: '🛋️ Living room',
+        items: ['Sofa', 'Armchair', 'Coffee table', 'TV', 'TV unit', 'Bookcase', 'Side table', 'Lamp']
+    },
+    {
+        name: '🛏️ Bedroom',
+        items: ['Double bed', 'Single bed', 'King bed', 'Wardrobe', 'Chest of drawers', 'Bedside table', 'Dressing table', 'Mattress']
+    },
+    {
+        name: '🍽️ Dining room',
+        items: ['Dining table', 'Dining chairs', 'Sideboard', 'Display cabinet']
+    },
+    {
+        name: '🍳 Kitchen',
+        items: ['Fridge / freezer', 'Washing machine', 'Tumble dryer', 'Dishwasher', 'Microwave', 'Oven']
+    },
+    {
+        name: '🏠 Office / other',
+        items: ['Desk', 'Office chair', 'Filing cabinet', 'Shelving unit', 'Bike', 'Exercise equipment']
+    },
+    {
+        name: '📦 Boxes',
+        items: ['Boxes (small)', 'Boxes (medium)', 'Boxes (large)', 'Boxes (extra large)', 'Suitcase', 'Bag']
+    }
 ];
 
-const inventory = {};
+const inventory = {};  // item -> qty
+let activeRoom = 0;
 
 function buildInventory() {
-    const grid = document.querySelector('#step-2 .inventory-grid');
-    inventoryItems.forEach(item => {
-inventory[item] = 0;
-const div = document.createElement('div');
-div.className = 'inv-item';
-div.innerHTML = `
-    <span class="inv-name">${item}</span>
-    <div class="qty-ctrl">
-<button class="qty-btn" onclick="changeQty('${item}', -1)">−</button>
-<span class="qty-num" id="qty-${item.replace(/ /g,'_')}">0</span>
-<button class="qty-btn" onclick="changeQty('${item}', 1)">+</button>
-    </div>`;
-grid.appendChild(div);
+    renderRoomTabs();
+    renderRoomItems();
+}
+
+function renderRoomTabs() {
+    const tabContainer = document.getElementById('room-tabs');
+    tabContainer.innerHTML = '';
+    rooms.forEach((room, i) => {
+        // Count how many items in this room have qty > 0
+        const count = room.items.filter(it => inventory[it] > 0).reduce((sum, it) => sum + inventory[it], 0);
+        const tab = document.createElement('div');
+        tab.className = 'room-tab' + (i === activeRoom ? ' active' : '');
+        tab.innerHTML = room.name + (count > 0 ? `<span class="room-badge">${count}</span>` : '');
+        tab.onclick = () => { activeRoom = i; renderRoomTabs(); renderRoomItems(); };
+        tabContainer.appendChild(tab);
+    });
+}
+
+function renderRoomItems() {
+    const grid = document.getElementById('inventory-grid');
+    grid.innerHTML = '';
+    rooms[activeRoom].items.forEach(item => {
+        if (!(item in inventory)) inventory[item] = 0;
+        const div = document.createElement('div');
+        div.className = 'inv-item';
+        div.id = 'inv-item-' + item.replace(/[^a-z0-9]/gi, '_');
+        div.innerHTML = `
+            <span class="inv-name">${item}</span>
+            <div class="qty-ctrl">
+                <button class="qty-btn" onclick="changeQty('${item}', -1)">−</button>
+                <span class="qty-num" id="qty-${item.replace(/[^a-z0-9]/gi, '_')}">${inventory[item] || 0}</span>
+                <button class="qty-btn" onclick="changeQty('${item}', 1)">+</button>
+            </div>`;
+        if (inventory[item] > 0) div.style.borderColor = '#1a8a72';
+        grid.appendChild(div);
     });
 }
 
 function changeQty(item, delta) {
     inventory[item] = Math.max(0, (inventory[item] || 0) + delta);
-    document.getElementById('qty-' + item.replace(/ /g,'_')).textContent = inventory[item];
+    const numEl = document.getElementById('qty-' + item.replace(/[^a-z0-9]/gi, '_'));
+    if (numEl) numEl.textContent = inventory[item];
+    // Highlight item if qty > 0
+    const itemEl = document.getElementById('inv-item-' + item.replace(/[^a-z0-9]/gi, '_'));
+    if (itemEl) itemEl.style.borderColor = inventory[item] > 0 ? '#1a8a72' : '';
+    renderRoomTabs();
+    renderSummary();
+}
+
+function renderSummary() {
+    const selected = Object.entries(inventory).filter(([, qty]) => qty > 0);
+    const summaryEl = document.getElementById('inv-summary');
+    const tagsEl = document.getElementById('inv-summary-tags');
+    if (!summaryEl || !tagsEl) return;
+    if (selected.length === 0) {
+        summaryEl.style.display = 'none';
+        return;
+    }
+    summaryEl.style.display = 'block';
+    tagsEl.innerHTML = selected.map(([item, qty]) =>
+        `<span class="inv-tag">${item} x${qty}</span>`
+    ).join('');
 }
 
 // ── YES/NO ──
