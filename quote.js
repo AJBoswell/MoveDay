@@ -7,27 +7,27 @@ const stepLabels = ['Address', 'Inventory', 'Storage', 'Loading help', 'Extras',
 // ── INVENTORY — ROOM BY ROOM ──
 const rooms = [
     {
-        name: '🛋️ Living room',
+        name: 'Living room',
         items: ['Sofa', 'Armchair', 'Coffee table', 'TV', 'TV unit', 'Bookcase', 'Side table', 'Lamp']
     },
     {
-        name: '🛏️ Bedroom',
+        name: 'Bedroom',
         items: ['Double bed', 'Single bed', 'King bed', 'Wardrobe', 'Chest of drawers', 'Bedside table', 'Dressing table', 'Mattress']
     },
     {
-        name: '🍽️ Dining room',
+        name: 'Dining room',
         items: ['Dining table', 'Dining chairs', 'Sideboard', 'Display cabinet']
     },
     {
-        name: '🍳 Kitchen',
+        name: 'Kitchen',
         items: ['Fridge / freezer', 'Washing machine', 'Tumble dryer', 'Dishwasher', 'Microwave', 'Oven']
     },
     {
-        name: '🏠 Office / other',
+        name: 'Office / other',
         items: ['Desk', 'Office chair', 'Filing cabinet', 'Shelving unit', 'Bike', 'Exercise equipment']
     },
     {
-        name: '📦 Boxes',
+        name: 'Boxes',
         items: ['Boxes (small)', 'Boxes (medium)', 'Boxes (large)', 'Boxes (extra large)', 'Suitcase', 'Bag']
     }
 ];
