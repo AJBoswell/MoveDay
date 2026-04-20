@@ -59,28 +59,30 @@ function renderRoomItems() {
     grid.innerHTML = '';
     rooms[activeRoom].items.forEach(item => {
         if (!(item in inventory)) inventory[item] = 0;
+        const key = item.replace(/[^a-z0-9]/gi, '_');
         const div = document.createElement('div');
-        div.className = 'inv-item';
-        div.id = 'inv-item-' + item.replace(/[^a-z0-9]/gi, '_');
+        div.className = 'inv-item' + (inventory[item] > 0 ? ' has-qty' : '');
+        div.id = 'inv-item-' + key;
         div.innerHTML = `
             <span class="inv-name">${item}</span>
             <div class="qty-ctrl">
                 <button class="qty-btn" onclick="changeQty('${item}', -1)">−</button>
-                <span class="qty-num" id="qty-${item.replace(/[^a-z0-9]/gi, '_')}">${inventory[item] || 0}</span>
+                <span class="qty-num" id="qty-${key}">${inventory[item] || 0}</span>
                 <button class="qty-btn" onclick="changeQty('${item}', 1)">+</button>
             </div>`;
-        if (inventory[item] > 0) div.style.borderColor = '#1a8a72';
         grid.appendChild(div);
     });
 }
 
 function changeQty(item, delta) {
     inventory[item] = Math.max(0, (inventory[item] || 0) + delta);
-    const numEl = document.getElementById('qty-' + item.replace(/[^a-z0-9]/gi, '_'));
+    const key = item.replace(/[^a-z0-9]/gi, '_');
+    const numEl = document.getElementById('qty-' + key);
     if (numEl) numEl.textContent = inventory[item];
-    // Highlight item if qty > 0
-    const itemEl = document.getElementById('inv-item-' + item.replace(/[^a-z0-9]/gi, '_'));
-    if (itemEl) itemEl.style.borderColor = inventory[item] > 0 ? '#1a8a72' : '';
+    const itemEl = document.getElementById('inv-item-' + key);
+    if (itemEl) {
+        itemEl.className = 'inv-item' + (inventory[item] > 0 ? ' has-qty' : '');
+    }
     renderRoomTabs();
     renderSummary();
 }
@@ -285,9 +287,17 @@ function initMaps() {
             if (status === 'OK') {
                 directionsRenderer.setDirections(result);
                 const leg = result.routes[0].legs[0];
-                document.getElementById('map-distance').textContent = leg.distance.text;
-                document.getElementById('map-duration').textContent = leg.duration.text + ' drive';
-                document.getElementById('map-info').classList.add('visible');
+                // Main map info bar
+                const distEl = document.getElementById('map-distance');
+                const durEl = document.getElementById('map-duration');
+                const infoEl = document.getElementById('map-info');
+                if (distEl) distEl.textContent = leg.distance.text;
+                if (durEl) durEl.textContent = leg.duration.text + ' drive';
+                if (infoEl) infoEl.classList.add('visible');
+                // Store result for mini map
+                window._lastRouteResult = result;
+                window._lastRouteLeg = leg;
+                renderMiniMap();
             }
         });
     }
@@ -312,3 +322,41 @@ function initMaps() {
         if (toPlace.geometry) tryRoute();
     });
 }
+// ── MINI MAP ON INVENTORY STEP ──
+function renderMiniMap() {
+    const mapEl = document.getElementById('inv-route-map');
+    const placeholder = document.getElementById('inv-map-placeholder');
+    const infoEl = document.getElementById('inv-map-info');
+    if (!mapEl || !window._lastRouteResult) return;
+
+    mapEl.style.display = 'block';
+    if (placeholder) placeholder.style.display = 'none';
+
+    const miniMap = new google.maps.Map(mapEl, {
+        disableDefaultUI: true,
+        zoomControl: false,
+        gestureHandling: 'none'
+    });
+
+    const miniRenderer = new google.maps.DirectionsRenderer({
+        map: miniMap,
+        suppressMarkers: false,
+        polylineOptions: { strokeColor: '#1a8a72', strokeWeight: 4 }
+    });
+
+    miniRenderer.setDirections(window._lastRouteResult);
+
+    if (infoEl && window._lastRouteLeg) {
+        infoEl.style.display = 'flex';
+        infoEl.innerHTML = `<span>📍 ${window._lastRouteLeg.distance.text}</span><span>🕐 ${window._lastRouteLeg.duration.text}</span>`;
+    }
+}
+
+// Re-render mini map when switching to step 2
+const _origNextStep = nextStep;
+nextStep = function() {
+    _origNextStep();
+    if (currentStep === 2) {
+        setTimeout(renderMiniMap, 100);
+    }
+};
