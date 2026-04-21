@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/611ec0_9fdf229dd67a4778aa8ea52766c4e981%7Emv2.png/v1/fill/w_32%2Ch_32%2Clg_1%2Cusm_0.66_1.00_0.01/611ec0_9fdf229dd67a4778aa8ea52766c4e981%7Emv2.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MoveDay – Get a Quote</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -673,7 +674,7 @@
         .success-pane {
             display: none;
             text-align: center;
-            padding: 60px 36px;
+            padding: 48px 36px;
         }
 
         .success-pane.active { display: block; animation: fadeIn 0.4s ease; }
@@ -685,21 +686,72 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 24px;
+            margin: 0 auto 20px;
         }
 
         .success-pane h2 {
             font-size: 1.5rem;
             font-weight: 700;
             color: var(--navy);
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
-        .success-pane p {
-            font-size: 0.9rem;
+        .success-pane > p {
+            font-size: 0.88rem;
             color: var(--grey);
             line-height: 1.6;
+            margin-bottom: 28px;
         }
+
+        .success-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            text-align: left;
+            margin-bottom: 28px;
+        }
+
+        .success-step {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            background: var(--light);
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+
+        .success-step-num {
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: var(--teal);
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .success-step-text {
+            font-size: 0.83rem;
+            color: var(--navy);
+            line-height: 1.5;
+        }
+
+        .success-home-btn {
+            display: inline-block;
+            padding: 11px 24px;
+            background: var(--navy);
+            color: var(--white);
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .success-home-btn:hover { background: var(--teal); }
 
         /* ── SECTION TITLE ── */
         .section-title {
@@ -941,8 +993,23 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
                     </svg>
                 </div>
-                <h2>We've got your details!</h2>
-                <p>One of our team will be in touch within the hour<br>to confirm your quote and answer any questions.</p>
+                <h2>Quote received!</h2>
+                <p>One of our team will call you within the hour to confirm your booking and answer any questions.</p>
+                <div class="success-steps">
+                    <div class="success-step">
+                        <div class="success-step-num">1</div>
+                        <div class="success-step-text"><strong>We call you</strong><br>Within the hour to confirm details</div>
+                    </div>
+                    <div class="success-step">
+                        <div class="success-step-num">2</div>
+                        <div class="success-step-text"><strong>We confirm your price</strong><br>Fixed quote, no hidden fees</div>
+                    </div>
+                    <div class="success-step">
+                        <div class="success-step-num">3</div>
+                        <div class="success-step-text"><strong>Moving day</strong><br>Our team arrives on time, fully equipped</div>
+                    </div>
+                </div>
+                <a href="index.html" class="success-home-btn">← Back to home</a>
             </div>
 
             <!-- FOOTER BUTTONS -->

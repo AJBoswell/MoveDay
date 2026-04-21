@@ -139,13 +139,89 @@ if (i + 1 < currentStep) p.classList.add('done');
     document.getElementById('btn-next').textContent = currentStep === totalSteps ? 'Submit quote →' : 'Next step';
 }
 
+function validateStep() {
+    if (currentStep === 1) {
+        const from = document.getElementById('address-from').value.trim();
+        const to = document.getElementById('address-to').value.trim();
+        const propFrom = document.getElementById('prop-from').value;
+        const propTo = document.getElementById('prop-to').value;
+        const date = document.getElementById('move-date').value.trim();
+        if (!from) { showError('address-from', 'Please enter a pickup address'); return false; }
+        if (!propFrom) { showError('prop-from', 'Please select a property type'); return false; }
+        if (!to) { showError('address-to', 'Please enter a delivery address'); return false; }
+        if (!propTo) { showError('prop-to', 'Please select a property type'); return false; }
+        if (!date) { showError('move-date', 'Please select a move date'); return false; }
+    }
+    if (currentStep === 6) {
+        const name = document.getElementById('detail-name').value.trim();
+        const email = document.getElementById('detail-email').value.trim();
+        const phone = document.getElementById('detail-phone').value.trim();
+        if (!name) { showError('detail-name', 'Please enter your name'); return false; }
+        if (!email || !email.includes('@')) { showError('detail-email', 'Please enter a valid email'); return false; }
+        if (!phone) { showError('detail-phone', 'Please enter your phone number'); return false; }
+    }
+    return true;
+}
+
+function showError(fieldId, msg) {
+    const field = document.getElementById(fieldId);
+    if (!field) return;
+    field.style.borderColor = '#e74c3c';
+    field.style.boxShadow = '0 0 0 3px rgba(231,76,60,0.12)';
+    let err = field.parentElement.querySelector('.field-error');
+    if (!err) {
+        err = document.createElement('div');
+        err.className = 'field-error';
+        err.style.cssText = 'color:#e74c3c;font-size:0.75rem;margin-top:5px;';
+        field.parentElement.appendChild(err);
+    }
+    err.textContent = msg;
+    field.addEventListener('input', () => {
+        field.style.borderColor = '';
+        field.style.boxShadow = '';
+        if (err) err.remove();
+    }, { once: true });
+    field.focus();
+}
+
+function saveSession() {
+    const data = {
+        step: currentStep,
+        from: document.getElementById('address-from')?.value || '',
+        to: document.getElementById('address-to')?.value || '',
+        propFrom: document.getElementById('prop-from')?.value || '',
+        propTo: document.getElementById('prop-to')?.value || '',
+        date: document.getElementById('move-date')?.value || '',
+        inventory: inventory,
+        ynState: ynState,
+    };
+    try { sessionStorage.setItem('moveday_quote', JSON.stringify(data)); } catch(e) {}
+}
+
+function loadSession() {
+    try {
+        const raw = sessionStorage.getItem('moveday_quote');
+        if (!raw) return;
+        const data = JSON.parse(raw);
+        if (data.from) document.getElementById('address-from').value = data.from;
+        if (data.to) document.getElementById('address-to').value = data.to;
+        if (data.propFrom) document.getElementById('prop-from').value = data.propFrom;
+        if (data.propTo) document.getElementById('prop-to').value = data.propTo;
+        if (data.date) document.getElementById('move-date').value = data.date;
+        if (data.inventory) Object.assign(inventory, data.inventory);
+        if (data.ynState) Object.assign(ynState, data.ynState);
+    } catch(e) {}
+}
+
 function nextStep() {
+    if (!validateStep()) return;
+    saveSession();
     if (currentStep < totalSteps) {
-currentStep++;
-updateUI();
-window.scrollTo({ top: 0, behavior: 'smooth' });
+        currentStep++;
+        updateUI();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
-submitQuote();
+        submitQuote();
     }
 }
 
@@ -210,13 +286,45 @@ alert('Something went wrong — please try again or call us directly.');
 }
 
 // ── FLATPICKR DATE ──
-flatpickr('#move-date', {
-    dateFormat: 'd-m-y',
-    minDate: 'today',
-    disableMobile: true,
-});
+// Booked dates are fetched from a public Google Sheet
+// Format in the sheet: one date per row in column A, format YYYY-MM-DD
+const BOOKED_DATES_URL = 'https://docs.google.com/spreadsheets/d/SHEET_ID/gviz/tq?tqx=out:csv&sheet=Bookings';
+
+async function getBookedDates() {
+    try {
+        const res = await fetch(BOOKED_DATES_URL);
+        const text = await res.text();
+        return text.split('\n')
+            .map(r => r.replace(/"/g, '').trim())
+            .filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d));
+    } catch(e) {
+        return [];
+    }
+}
+
+async function initDatePicker() {
+    const bookedDates = await getBookedDates();
+    flatpickr('#move-date', {
+        dateFormat: 'd-m-y',
+        minDate: 'today',
+        disableMobile: true,
+        disable: bookedDates,
+        onDayCreate: (dObj, dStr, fp, dayElem) => {
+            const dateStr = dayElem.dateObj.toISOString().split('T')[0];
+            if (bookedDates.includes(dateStr)) {
+                dayElem.title = 'Fully booked';
+                dayElem.style.background = '#fee2e2';
+                dayElem.style.color = '#ef4444';
+                dayElem.style.borderRadius = '4px';
+            }
+        }
+    });
+}
+
+initDatePicker();
 
 // ── INIT ──
+loadSession();
 buildInventory();
 updateUI();
 
