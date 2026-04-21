@@ -294,10 +294,9 @@ function initMaps() {
                 if (distEl) distEl.textContent = leg.distance.text;
                 if (durEl) durEl.textContent = leg.duration.text + ' drive';
                 if (infoEl) infoEl.classList.add('visible');
-                // Store result for mini map
+                // Store result for reference
                 window._lastRouteResult = result;
                 window._lastRouteLeg = leg;
-                renderMiniMap();
             }
         });
     }
