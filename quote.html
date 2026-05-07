@@ -152,11 +152,6 @@
 
         #route-map {
             flex: 1;
-            min-height: 0;
-        }
-
-        #route-map {
-            flex: 1;
             min-height: 320px;
             background: #e8eaf0;
         }
@@ -227,15 +222,6 @@
             gap: 6px;
         }
 
-        .step-counter .spinner {
-            width: 16px; height: 16px;
-            border: 2px solid var(--border);
-            border-top-color: var(--teal);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* ── STEP BODY ── */
         .step-body {
@@ -411,24 +397,6 @@
             padding: 8px;
         }
 
-        .inv-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 8px 10px;
-            border-radius: 6px;
-            transition: background 0.15s;
-            border: none !important;
-        }
-
-        .inv-item:hover { background: #f3f4f6; }
-        .inv-item.has-qty { background: #f0faf7; }
-
-        .inv-name {
-            font-size: 0.82rem;
-            font-weight: 500;
-            color: var(--navy);
-        }
 
         /* Summary strip at bottom of middle col */
         .inv-summary {
@@ -497,38 +465,6 @@
             color: var(--navy);
         }
 
-        /* Qty controls */
-        .qty-ctrl {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .qty-btn {
-            width: 22px;
-            height: 22px;
-            border: 1.5px solid var(--border);
-            border-radius: 50%;
-            background: var(--white);
-            font-size: 0.9rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--navy);
-            transition: all 0.15s;
-            line-height: 1;
-        }
-
-        .qty-btn:hover { border-color: var(--teal); color: var(--teal); }
-
-        .qty-num {
-            font-size: 0.82rem;
-            font-weight: 600;
-            min-width: 14px;
-            text-align: center;
-            color: var(--navy);
-        }
 
         @media (max-width: 600px) {
             .inv-layout {
@@ -546,10 +482,11 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: border-color 0.2s;
+            transition: border-color 0.2s, background 0.15s;
         }
 
-        .inv-item:hover { border-color: var(--teal-light); }
+        .inv-item:hover { border-color: var(--teal-light); background: #f3f4f6; }
+        .inv-item.has-qty { background: #f0faf7; }
 
         .inv-name {
             font-size: 0.82rem;
@@ -813,12 +750,12 @@
 
     <!-- FORM -->
     <main>
+        <div class="step1-layout" id="step1-layout">
         <div class="form-shell">
 
             <div class="step-header">
                 <div class="step-label" id="step-label">Address</div>
                 <div class="step-counter">
-                    <div class="spinner"></div>
                     <span id="step-counter-text">1 / 6</span>
                 </div>
             </div>

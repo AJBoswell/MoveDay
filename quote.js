@@ -189,6 +189,18 @@ function recommendVans(totalKg, distanceKm, addressTo, extras, ynState) {
             ferry,
             note: 'Extra space and flexibility on the day'
         });
+    } else {
+        // Already at maximum vehicle — always need 3 options to avoid undefined access on submit
+        options.push({
+            ref: generateRef(),
+            label: 'Premium option',
+            van: recVan.name,
+            capacity: recVan.capacity,
+            vans: 1,
+            price: calcPrice(recVan, 1),
+            ferry,
+            note: 'Call us to discuss a bespoke solution for your move'
+        });
     }
 
     // Ensure exactly 3 options
@@ -483,7 +495,13 @@ function loadSession() {
         if (data.propTo) document.getElementById('prop-to').value = data.propTo;
         if (data.date) document.getElementById('move-date').value = data.date;
         if (data.inventory) Object.assign(inventory, data.inventory);
-        if (data.ynState) Object.assign(ynState, data.ynState);
+        if (data.ynState) {
+            Object.assign(ynState, data.ynState);
+            Object.entries(ynState).forEach(([group, val]) => {
+                const card = document.querySelector(`[data-yn="${group}-${val}"]`);
+                if (card) card.classList.add('selected');
+            });
+        }
     } catch(e) {}
 }
 
@@ -577,8 +595,6 @@ function submitQuote() {
         option_3_price: '£' + vanOpts[2].price,
         customer_email_html: buildEmailHTML(emailPayload, vanOpts, totalKg, distanceText, durationText)
     };
-
-    btn.textContent = 'Sending…';
 
     fetch('https://hook.eu1.make.com/kipa87v6p39qcvs2caf7em7dpaexl1la', {
         method: 'POST',
