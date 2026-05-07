@@ -135,6 +135,8 @@
     </div>
 
     <script>
+        // Toggles the mobile nav drawer open/closed. The hamburger icon
+        // animates to an × via CSS when the 'open' class is present.
         function toggleNav() {
             const links = document.getElementById('nav-links');
             const btn = document.getElementById('nav-hamburger');
@@ -142,6 +144,11 @@
             btn.classList.toggle('open');
         }
 
+        // Hero lead form — captures name/email/phone and sends to Make.com.
+        // The webhook call is fire-and-forget: regardless of the response the
+        // user is redirected to quote.html so they can start the full quote flow.
+        // source: 'Hero lead form' lets Make.com distinguish this from the
+        // full quote submission that arrives from quote.js.
         document.getElementById('lead-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const btn = document.querySelector('.submit-btn');
@@ -162,6 +169,7 @@
                 credentials: 'omit'
             })
             .finally(() => {
+                // Always redirect — even if the webhook fails, the user proceeds
                 window.location.href = 'quote.html';
             });
         });

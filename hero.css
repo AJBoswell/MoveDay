@@ -1,5 +1,8 @@
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+        /* Brand colour tokens — --border here uses a white-alpha value because
+           the hero sits on a dark background. quote.html overrides --border to
+           a solid light grey for its light background. */
         :root {
             --navy:   #0f1f38;
             --teal:   #1a8a72;
@@ -75,6 +78,9 @@
             overflow: hidden;
         }
 
+        /* Full-bleed background: dark navy→teal gradient overlaid on the Unsplash photo.
+           The gradient ensures text on the left copy is always readable regardless
+           of the image content. */
         .hero-bg {
             position: absolute;
             inset: 0;
@@ -83,7 +89,8 @@
                 url('https://images.unsplash.com/photo-1499856871958-5b9627545d1a?w=1600&q=80') center/cover no-repeat;
         }
 
-        /* Subtle diagonal accent */
+        /* Diagonal cream wedge at the bottom of the hero that transitions into
+           the stats bar. The -1px bottom prevents a 1px gap on some screens. */
         .hero-bg::after {
             content: '';
             position: absolute;
@@ -322,7 +329,10 @@
             margin-top: 4px;
         }
 
-        /* ── ANIMATIONS ── */
+        /* ── ANIMATIONS ──
+           fadeUp is used on hero copy and form card with staggered delays (0s, 0.1s, 0.2s, 0.3s)
+           to create a sequential reveal on page load. 'animation-fill-mode: both' (via shorthand)
+           keeps elements invisible before their delay fires. */
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(20px); }
             to   { opacity: 1; transform: translateY(0); }
@@ -350,7 +360,10 @@
             background-color: var(--white);
         }
 
-        /* ── HAMBURGER ── */
+        /* ── HAMBURGER ──
+           Hidden on desktop; shown on mobile via the @media block below.
+           The three <span> elements animate into an × when the 'open' class is toggled
+           by toggleNav() in index.html. */
         .nav-hamburger {
             display: none;
             flex-direction: column;

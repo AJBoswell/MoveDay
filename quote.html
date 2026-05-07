@@ -11,6 +11,8 @@
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+        /* Brand colour tokens — shared with hero.css. --orange is the CTA colour
+           used on the Next/Submit button to make it stand out from the teal brand. */
         :root {
             --navy:   #0f1f38;
             --teal:   #1a8a72;
@@ -115,7 +117,11 @@
             overflow: hidden;
         }
 
-        /* ── STEP 1 TWO-COLUMN LAYOUT ── */
+        /* ── STEP 1 TWO-COLUMN LAYOUT ──
+           On step 1 the form shell and map panel sit side by side.
+           toggleMapPanel() in quote.js hides the map panel on all other steps
+           and on mobile, collapsing the layout back to single-column.
+           The max-width is overridden by JS: 1100px (two-column) or 640px (one-column). */
         .step1-layout {
             display: flex;
             gap: 0;
@@ -124,6 +130,7 @@
             width: 100%;
         }
 
+        /* Square off the right side of the form shell so it joins flush with the map panel */
         .step1-layout .form-shell {
             max-width: 560px;
             flex-shrink: 0;
@@ -235,6 +242,8 @@
             padding: 28px 36px 36px;
         }
 
+        /* Only the active pane is shown. JS toggles the 'active' class in updateUI().
+           The fadeIn animation slides each new step in from the right. */
         .step-pane { display: none; }
         .step-pane.active { display: block; animation: fadeIn 0.3s ease; }
 
@@ -1045,10 +1054,17 @@
         </div><!-- end step1-layout -->
     </main>
 
+    <!-- Flatpickr: date picker used on step 1 for the move date field.
+         Must load before quote.js so initDatePicker() can call flatpickr(). -->
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-
+    <!-- Main application logic: inventory, pricing, form navigation, submission -->
     <script src="quote.js"></script>
+
+    <!-- Google Maps: loads the Places library for address autocomplete and the
+         Directions API for the route preview. The callback=initMaps parameter
+         calls initMaps() in quote.js once the API is ready. The API key is
+         hardcoded here — update it if the key is rotated. -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAWhB-1aMujEYbBSycKXde3YNh4PwKEpH8&libraries=places&callback=initMaps" defer></script>
 </body>
 </html>
