@@ -1,15 +1,10 @@
 // ── STATE ──
-// currentStep is 1-indexed and maps directly to step-pane IDs and progress-step IDs in the HTML.
 let currentStep = 1;
 const totalSteps = 6;
 
-// Displayed in the step-header label as the user moves through the form.
 const stepLabels = ['Address', 'Inventory', 'Storage', 'Loading help', 'Extras', 'Your details'];
 
 // ── INVENTORY — ROOM BY ROOM ──
-// Each room renders as a tab in step 2; its items render as quantity-control rows.
-// Adding or removing items here automatically updates both the UI and weight calculations
-// with no other changes required.
 const rooms = [
     {
         name: 'Living room',
@@ -39,8 +34,6 @@ const rooms = [
 
 
 // ── ITEM WEIGHTS (kg) ──
-// Used to estimate total load weight and choose the minimum viable van.
-// Any item not listed here falls back to 20 kg in calculateTotalWeight().
 const itemWeights = {
     // Living room
     'Sofa': 50, 'Armchair': 25, 'Coffee table': 15, 'TV': 20, 'TV unit': 25,
@@ -62,9 +55,7 @@ const itemWeights = {
 };
 
 // ── VAN OPTIONS ──
-// Must be ordered smallest to largest capacity — recommendVans() uses findIndex()
-// to locate the first van that fits the load, so order is critical.
-// baseRate = £ per km. The lorry's higher rate reflects specialist driver costs.
+// baseRate = £ per km
 const vanOptions = [
     { name: 'Half van',       capacity: 500,   baseRate: 0.90 },
     { name: 'Full van',       capacity: 1000,  baseRate: 0.90 },
@@ -81,10 +72,6 @@ const pricing = {
     helperUnloading:    100,   // £ per person for unloading (additional)
     storagePerWeek:     50,    // £ per week (placeholder)
     serviceFee:         100,   // £ fixed service charge added to every job
-
-    // These are matched against the destination address string to detect international moves.
-    // Matching is a simple substring check (case-insensitive), so keep entries as specific
-    // city/country names — short strings like "es" or "de" would cause false positives.
     ferryRoutes: ['france','calais','paris','lyon','marseille','belgium','brussels',
                   'netherlands','amsterdam','spain','madrid','barcelona',
                   'germany','berlin','frankfurt','italy','rome','milan'],
@@ -93,8 +80,6 @@ const pricing = {
 };
 
 // ── GENERATE REF NUMBER ──
-// Omits visually ambiguous characters (0, 1, I, O) so customers can read
-// the reference back over the phone without confusion.
 function generateRef() {
     const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
     let ref = 'MD-';
@@ -104,17 +89,12 @@ function generateRef() {
 
 // ── CALCULATE TOTAL WEIGHT ──
 function calculateTotalWeight() {
-    // Falls back to 20 kg for any item not in itemWeights. This handles items
-    // added to rooms[] in the future before a weight has been assigned.
     return Object.entries(inventory).reduce((total, [item, qty]) => {
         return total + (itemWeights[item] || 20) * qty;
     }, 0);
 }
 
 // ── CHECK IF FERRY NEEDED ──
-// Performs a case-insensitive substring match on the full destination address.
-// A partial match like "Amsterdam Road" will trigger ferry pricing, so the
-// ferryRoutes list uses specific city names rather than country codes.
 function needsFerry(addressTo) {
     const lower = (addressTo || '').toLowerCase();
     return pricing.ferryRoutes.some(r => lower.includes(r));
@@ -127,12 +107,6 @@ function needsCustoms(addressTo) {
 }
 
 // ── RECOMMEND VAN OPTIONS ──
-// Always returns exactly 3 options for the email template:
-//   A (Recommended) — smallest van that fits the estimated load
-//   B (Budget)      — one size down, using multiple vans if the load requires it
-//   C (Premium)     — one size up for extra space and flexibility
-// Edge cases: if already at the smallest van, B mirrors A with a note;
-// if already at the largest, C is dropped and slice(0,3) handles the trim.
 function recommendVans(totalKg, distanceKm, addressTo, extras, ynState) {
     const ferry    = needsFerry(addressTo);
     const customs  = needsCustoms(addressTo);
@@ -141,19 +115,17 @@ function recommendVans(totalKg, distanceKm, addressTo, extras, ynState) {
     const packing  = extras && extras.toLowerCase().includes('packing');
     const dismantl = extras && extras.toLowerCase().includes('dismantl');
 
-    // Inner function closes over the add-on flags so each of the 3 options
-    // gets the same add-on costs applied consistently without re-checking them.
     function calcPrice(van, vans_needed) {
         let total = van.baseRate * distanceKm * vans_needed;        // distance cost
         total += pricing.serviceFee;                                  // service fee
-        if (ferry)    total += pricing.ferryEstimate * vans_needed;  // ferry charged per vehicle
-        if (customs)  total += pricing.customsEstimate;              // customs charged once per job
+        if (ferry)    total += pricing.ferryEstimate * vans_needed;  // ferry
+        if (customs)  total += pricing.customsEstimate;              // customs (once)
         if (loading)  total += pricing.helperLoading + pricing.helperUnloading; // 1 helper both ways
         if (storage)  total += pricing.storagePerWeek;               // 1 week storage
         if (packing)  total += 80;                                    // packing materials estimate
         if (dismantl) total += 60;                                    // dismantling estimate
         total = Math.max(pricing.minCharge, total);
-        return Math.round(total / 5) * 5; // round to nearest £5 for cleaner-looking quotes
+        return Math.round(total / 5) * 5; // round to nearest £5
     }
 
     // Find the minimum viable van
@@ -224,10 +196,6 @@ function recommendVans(totalKg, distanceKm, addressTo, extras, ynState) {
 }
 
 // ── BUILD HTML EMAIL TEMPLATE ──
-// Generates a fully inline-styled HTML email (no external CSS) so it renders
-// correctly in Outlook, Gmail, and Apple Mail. Contains the move summary and
-// all 3 quote option cards. This is intended to be included as html_body in
-// the submitQuote() webhook payload so Make.com can send it to the customer.
 function buildEmailHTML(payload, options, totalKg, distanceText, durationText) {
     const ferry = options[0].ferry;
     const optionCards = options.map(opt => `
@@ -338,20 +306,14 @@ function buildEmailHTML(payload, options, totalKg, distanceText, durationText) {
 </html>`;
 }
 
-// ── INVENTORY STATE ──
-// Flat map of item name → quantity. Initialised empty; keys are added on
-// first render of each room so every item is always present after step 2 loads.
-const inventory = {};
-let activeRoom = 0; // index into rooms[] for the currently visible tab
+const inventory = {};  // item -> qty
+let activeRoom = 0;
 
-// Initialises the inventory UI — called once on page load.
 function buildInventory() {
     renderRoomTabs();
     renderRoomItems();
 }
 
-// Redraws the room tab strip. Each tab shows a badge with the total quantity
-// of items selected in that room so users can see what they've added at a glance.
 function renderRoomTabs() {
     const tabContainer = document.getElementById('room-tabs');
     tabContainer.innerHTML = '';
@@ -366,9 +328,6 @@ function renderRoomTabs() {
     });
 }
 
-// Redraws the item grid for the active room tab.
-// Item names are slugified (non-alphanumeric → underscore) to produce safe DOM IDs
-// used by changeQty() for targeted DOM updates without re-rendering the whole grid.
 function renderRoomItems() {
     const grid = document.getElementById('inventory-grid');
     grid.innerHTML = '';
@@ -389,24 +348,19 @@ function renderRoomItems() {
     });
 }
 
-// Updates inventory[item] and patches the DOM in-place rather than re-rendering
-// the entire grid, keeping the interaction snappy on slower devices.
 function changeQty(item, delta) {
     inventory[item] = Math.max(0, (inventory[item] || 0) + delta);
     const key = item.replace(/[^a-z0-9]/gi, '_');
     const numEl = document.getElementById('qty-' + key);
     if (numEl) numEl.textContent = inventory[item];
-    // Toggle the highlight class so items with qty > 0 stand out visually
     const itemEl = document.getElementById('inv-item-' + key);
     if (itemEl) {
         itemEl.className = 'inv-item' + (inventory[item] > 0 ? ' has-qty' : '');
     }
-    renderRoomTabs(); // refresh tab badges
-    renderSummary();  // refresh the selected-items strip at the bottom
+    renderRoomTabs();
+    renderSummary();
 }
 
-// Renders a scrollable strip of tags showing all selected items and quantities.
-// Hidden when nothing has been selected.
 function renderSummary() {
     const selected = Object.entries(inventory).filter(([, qty]) => qty > 0);
     const summaryEl = document.getElementById('inv-summary');
@@ -422,13 +376,9 @@ function renderSummary() {
     ).join('');
 }
 
-// ── YES/NO CARDS ──
-// Tracks answers to binary questions (storage, loading help).
-// Keys match the group argument passed from onclick="selectYN(this, 'storage')".
+// ── YES/NO ──
 const ynState = {};
 
-// Deselects all cards in the group, selects the clicked one, and stores the answer.
-// The data-yn attribute format is "<group>-yes" or "<group>-no" (e.g. "storage-yes").
 function selectYN(card, group) {
     document.querySelectorAll(`[data-yn^="${group}"]`).forEach(c => c.classList.remove('selected'));
     card.classList.add('selected');
@@ -436,16 +386,11 @@ function selectYN(card, group) {
 }
 
 // ── EXTRAS ──
-// Toggling adds/removes the "checked" CSS class which drives both the visual
-// tick and the selection state read by submitQuote().
 function toggleExtra(el) {
     el.classList.toggle('checked');
 }
 
 // ── NAVIGATION ──
-// Syncs all visual state to currentStep: which pane is visible, progress bar
-// colouring (active/done), step label text, back button visibility, and
-// next button label (changes to "Submit quote →" on the final step).
 function updateUI() {
     // Panes
     document.querySelectorAll('.step-pane').forEach((p, i) => {
@@ -468,9 +413,6 @@ if (i + 1 < currentStep) p.classList.add('done');
     document.getElementById('btn-next').textContent = currentStep === totalSteps ? 'Submit quote →' : 'Next step';
 }
 
-// Validates required fields before advancing. Only steps 1 and 6 have required
-// fields — intermediate steps (inventory, yes/no, extras) are intentionally
-// optional so the form is low-friction.
 function validateStep() {
     if (currentStep === 1) {
         const from = document.getElementById('address-from').value.trim();
@@ -495,8 +437,6 @@ function validateStep() {
     return true;
 }
 
-// Highlights a field red and appends an error message below it.
-// A one-time 'input' listener auto-clears the error as soon as the user starts typing.
 function showError(fieldId, msg) {
     const field = document.getElementById(fieldId);
     if (!field) return;
@@ -518,10 +458,6 @@ function showError(fieldId, msg) {
     field.focus();
 }
 
-// ── SESSION PERSISTENCE ──
-// Saves form state to sessionStorage so data survives a page refresh or
-// navigating away and back within the same browser tab. Not persisted to
-// localStorage because quote data should not outlive the session.
 function saveSession() {
     const data = {
         step: currentStep,
@@ -536,9 +472,6 @@ function saveSession() {
     try { sessionStorage.setItem('moveday_quote', JSON.stringify(data)); } catch(e) {}
 }
 
-// Restores form fields and state objects from sessionStorage on page load.
-// Object.assign merges into the existing inventory/ynState rather than replacing
-// them so any defaults set during initialisation are preserved.
 function loadSession() {
     try {
         const raw = sessionStorage.getItem('moveday_quote');
@@ -554,8 +487,6 @@ function loadSession() {
     } catch(e) {}
 }
 
-// Validates the current step, saves session state, then advances to the next step.
-// On the final step, calls submitQuote() instead of incrementing currentStep.
 function nextStep() {
     if (!validateStep()) return;
     saveSession();
@@ -576,11 +507,6 @@ updateUI();
 }
 
 // ── SUBMIT TO MAKE.COM ──
-// Collects all form state into a flat payload and POSTs it to the Make.com webhook.
-// Make.com receives the data, generates the quote email, and sends it to the customer.
-// The button is disabled during the request to prevent double-submission.
-// On success the form is hidden and the success pane is shown regardless of
-// the response body (Make webhooks return 200 on acceptance with no useful body).
 function submitQuote() {
     const btn = document.getElementById('btn-next');
     btn.textContent = 'Sending…';
@@ -592,63 +518,103 @@ function submitQuote() {
 .map(([item, qty]) => `${item} x${qty}`)
 .join(', ') || 'None selected';
 
-    // Collect extras — reads the text content of checked .extra-item elements
+    // Collect extras
     const extrasList = Array.from(document.querySelectorAll('.extra-item.checked'))
 .map(el => el.querySelector('.extra-title').textContent.trim())
 .join(', ') || 'None';
 
-    const payload = {
-name: document.getElementById('detail-name').value,
-email:document.getElementById('detail-email').value,
-phone:document.getElementById('detail-phone').value,
-address_from: document.getElementById('address-from').value,
-property_from: document.getElementById('prop-from').value,
-address_to:   document.getElementById('address-to').value,
-property_to:  document.getElementById('prop-to').value,
-move_date:    document.getElementById('move-date').value,
-inventory:    itemsList,
-storage:      ynState['storage'] || 'Not answered',
-loading_help: ynState['loading'] || 'Not answered',
-extras:       extrasList,
+    // Calculate weight and route
+    const totalKg = calculateTotalWeight();
+    const distanceLeg = window._lastRouteLeg;
+    const distanceKm = distanceLeg ? distanceLeg.distance.value / 1000 : 50;
+    const distanceText = distanceLeg ? distanceLeg.distance.text : 'Unknown';
+    const durationText = distanceLeg ? distanceLeg.duration.text : 'Unknown';
+    const addressTo = document.getElementById('address-to').value;
+
+    // Get van recommendations
+    const vanOpts = recommendVans(totalKg, distanceKm, addressTo, extrasList, ynState);
+
+    // Build email HTML
+    const emailPayload = {
+        name:          document.getElementById('detail-name').value,
+        address_from:  document.getElementById('address-from').value,
+        property_from: document.getElementById('prop-from').value,
+        address_to:    addressTo,
+        property_to:   document.getElementById('prop-to').value,
+        move_date:     document.getElementById('move-date').value,
+        extras:        extrasList,
+        storage:       ynState['storage'] || 'no',
+        loading_help:  ynState['loading'] || 'no',
     };
 
+    const payload = {
+        name:          emailPayload.name,
+        email:         document.getElementById('detail-email').value,
+        phone:         document.getElementById('detail-phone').value,
+        address_from:  emailPayload.address_from,
+        property_from: emailPayload.property_from,
+        address_to:    addressTo,
+        property_to:   emailPayload.property_to,
+        move_date:     emailPayload.move_date,
+        inventory:     itemsList,
+        storage:       ynState['storage'] || 'Not answered',
+        loading_help:  ynState['loading'] || 'Not answered',
+        extras:        extrasList,
+        referral:      (document.getElementById('detail-referral') || {}).value || 'None',
+        total_weight:  totalKg + 'kg',
+        distance:      distanceText,
+        option_1_ref:   vanOpts[0].ref,
+        option_1_label: vanOpts[0].label,
+        option_1_van:   vanOpts[0].van,
+        option_1_price: '£' + vanOpts[0].price,
+        option_2_ref:   vanOpts[1].ref,
+        option_2_label: vanOpts[1].label,
+        option_2_van:   vanOpts[1].van,
+        option_2_price: '£' + vanOpts[1].price,
+        option_3_ref:   vanOpts[2].ref,
+        option_3_label: vanOpts[2].label,
+        option_3_van:   vanOpts[2].van,
+        option_3_price: '£' + vanOpts[2].price,
+        customer_email_html: buildEmailHTML(emailPayload, vanOpts, totalKg, distanceText, durationText)
+    };
+
+    btn.textContent = 'Sending…';
+
     fetch('https://hook.eu1.make.com/kipa87v6p39qcvs2caf7em7dpaexl1la', {
-method: 'POST',
-headers: { 'Content-Type': 'application/json' },
-body: JSON.stringify(payload)
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
     })
     .then(() => {
-// Show success regardless (Make webhooks return 200 on accepted)
-document.getElementById('step-footer').style.display = 'none';
-document.getElementById('step-label').textContent = 'All done!';
-document.querySelector('.step-counter').style.display = 'none';
-document.querySelectorAll('.step-pane').forEach(p => p.classList.remove('active'));
-document.getElementById('success-pane').classList.add('active');
-document.querySelectorAll('.progress-step').forEach(p => p.classList.add('done'));
+        document.getElementById('step-footer').style.display = 'none';
+        document.getElementById('step-label').textContent = 'All done!';
+        document.querySelector('.step-counter').style.display = 'none';
+        document.querySelectorAll('.step-pane').forEach(p => p.classList.remove('active'));
+        document.getElementById('success-pane').classList.add('active');
+        document.querySelectorAll('.progress-step').forEach(p => p.classList.add('done'));
+        try { sessionStorage.removeItem('moveday_quote'); } catch(e) {}
     })
     .catch(() => {
-btn.textContent = 'Submit quote →';
-btn.disabled = false;
-alert('Something went wrong — please try again or call us directly.');
+        btn.textContent = 'Submit quote →';
+        btn.disabled = false;
+        alert('Something went wrong — please try again or call us directly.');
     });
 }
 
-// ── FLATPICKR DATE PICKER ──
-// Fetches booked dates from a public Google Sheet (one date per row in column A,
-// format YYYY-MM-DD). Those dates are passed to Flatpickr's disable array so they
-// appear greyed out and unselectable. Replace SHEET_ID with the real spreadsheet ID.
+// ── FLATPICKR DATE ──
+// Booked dates are fetched from a public Google Sheet
+// Format in the sheet: one date per row in column A, format YYYY-MM-DD
 const BOOKED_DATES_URL = 'https://docs.google.com/spreadsheets/d/SHEET_ID/gviz/tq?tqx=out:csv&sheet=Bookings';
 
 async function getBookedDates() {
     try {
         const res = await fetch(BOOKED_DATES_URL);
         const text = await res.text();
-        // CSV rows may be quoted; strip quotes and blank lines, keep only YYYY-MM-DD
         return text.split('\n')
             .map(r => r.replace(/"/g, '').trim())
             .filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d));
     } catch(e) {
-        return []; // fail silently — all dates remain available if the sheet is unreachable
+        return [];
     }
 }
 
@@ -657,10 +623,8 @@ async function initDatePicker() {
     flatpickr('#move-date', {
         dateFormat: 'd-m-y',
         minDate: 'today',
-        disablemobile: true,  // use the custom calendar on mobile instead of native date picker
+        disableMobile: true,
         disable: bookedDates,
-        // onDayCreate is called for every day cell rendered in the calendar.
-        // Booked dates get a red background so customers know at a glance what's available.
         onDayCreate: (dObj, dStr, fp, dayElem) => {
             const dateStr = dayElem.dateObj.toISOString().split('T')[0];
             if (bookedDates.includes(dateStr)) {
@@ -676,16 +640,11 @@ async function initDatePicker() {
 initDatePicker();
 
 // ── INIT ──
-// Restore any saved session state, build the inventory grid, then render the UI.
 loadSession();
 buildInventory();
 updateUI();
 
 // ── SHOW/HIDE MAP PANEL ──
-// The map panel sits to the right of the form shell in a two-column layout,
-// but only on step 1 (address entry) and only on viewports wider than 900px.
-// On all other steps or narrower screens it is hidden and the form expands to
-// its single-column max-width.
 function toggleMapPanel() {
     const panel = document.getElementById('map-panel');
     const layout = document.getElementById('step1-layout');
@@ -693,18 +652,17 @@ function toggleMapPanel() {
     const isMobile = window.innerWidth <= 900;
     if (currentStep === 1 && !isMobile) {
         panel.classList.remove('hidden');
-        layout.style.maxWidth = '1100px'; // wide enough to fit form + map side by side
+        layout.style.maxWidth = '1100px';
     } else {
         panel.classList.add('hidden');
-        layout.style.maxWidth = '640px';  // single-column form width
+        layout.style.maxWidth = '640px';
     }
 }
 
 // Re-check on resize
 window.addEventListener('resize', toggleMapPanel);
 
-// Patch updateUI to also toggle map — done this way so both concerns stay
-// synchronised without merging the two functions.
+// Patch updateUI to also toggle map
 const _origUpdateUI = updateUI;
 updateUI = function() {
     _origUpdateUI();
@@ -714,14 +672,11 @@ toggleMapPanel();
 
 
 // ── GOOGLE MAPS AUTOCOMPLETE + ROUTE ──
-// Called by the Maps JS API as its load callback (see the script tag in quote.html).
-// All map variables are scoped inside this function to avoid polluting the global
-// namespace and to prevent hoisting issues before the API has loaded.
+// All map vars scoped inside initMaps to avoid hoisting issues
 function initMaps() {
     const mapEl = document.getElementById('route-map');
     if (!mapEl) return;
 
-    // Minimal map style: POI and transit layers hidden to keep the route clear
     const map = new google.maps.Map(mapEl, {
         center: { lat: 51.5, lng: -0.1 },
         zoom: 7,
@@ -737,19 +692,15 @@ function initMaps() {
     const directionsRenderer = new google.maps.DirectionsRenderer({
         map,
         suppressMarkers: false,
-        polylineOptions: { strokeColor: '#1a8a72', strokeWeight: 5 } // teal brand colour
+        polylineOptions: { strokeColor: '#1a8a72', strokeWeight: 5 }
     });
 
     const placeholder = document.getElementById('map-placeholder');
     if (placeholder) placeholder.style.display = 'none';
 
-    // Both addresses must be resolved before a route can be drawn
     let fromPlace = null;
     let toPlace = null;
 
-    // Requests a driving route and updates the distance/duration info bar below the map.
-    // Also stores the result on window so submitQuote() can read leg distance/duration
-    // to include in the webhook payload if needed.
     function tryRoute() {
         if (!fromPlace || !toPlace) return;
         directionsService.route({
@@ -775,8 +726,6 @@ function initMaps() {
     }
 
     // Autocomplete - FROM
-    // Requesting only formatted_address and geometry keeps the response small
-    // and avoids billing for fields we don't use.
     const acFrom = new google.maps.places.Autocomplete(
         document.getElementById('address-from'),
         { fields: ['formatted_address', 'geometry'] }
